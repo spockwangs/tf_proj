@@ -8,6 +8,8 @@ class BaseModel:
         self.init_global_step()
         # init the epoch counter
         self.init_cur_epoch()
+        self.build_model()
+        self.init_saver()
 
     # save function thet save the checkpoint in the path defined in configfile
     def save(self, sess):

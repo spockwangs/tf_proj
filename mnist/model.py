@@ -4,8 +4,6 @@ import tensorflow as tf
 class Model(BaseModel):
     def __init__(self, config):
         super(Model, self).__init__(config)
-        self.build_model()
-        self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
