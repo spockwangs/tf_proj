@@ -1,0 +1,10 @@
+{
+    "exp_name": "example",
+    "num_epochs": 1,
+    "num_iter_per_epoch": 100,
+    "learning_rate": 0.5,
+    "batch_size": 700,
+    "max_to_keep":5,
+    "summary_dir": "tf_proj/mnist/summary/",
+    "checkpoint_dir": "tf_proj/mnist/checkpoint/"
+}
