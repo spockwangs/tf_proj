@@ -4,7 +4,8 @@ import tensorflow as tf
 class Model(BaseModel):
     def __init__(self, config):
         super(Model, self).__init__(config)
-
+        self.build_model()
+        
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
         self.x = tf.placeholder(tf.float32, shape=[None, 784])

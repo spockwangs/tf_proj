@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 from .model import Model
+from .lecun_5_model import Lecun5Model
 from .data_set import DataSet
 from .train import Trainer
 from ..base.options import get_options
