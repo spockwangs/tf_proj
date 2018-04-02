@@ -30,8 +30,8 @@ def main(argv=None):
         
         options = get_options(config)
         sess = tf.Session()
-        model = Model(options)
-        model.load(sess)
+        model = Lecun5Model(options)
+        #model.load(sess)
         data = DataSet(options)
         trainer = Trainer(sess, model, data, options)
         trainer.train()
