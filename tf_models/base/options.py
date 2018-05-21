@@ -2,10 +2,6 @@ import json
 from bunch import Bunch
 import os
 
-import json
-from bunch import Bunch
-import os
-
 def get_options(jsonfile):
     with open(jsonfile, 'r') as f:
         option_dict = json.load(f)

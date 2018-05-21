@@ -1,10 +1,10 @@
 import tensorflow as tf
 
-from .model import Model
-from .lecun_5_model import Lecun5Model
-from .data_set import DataSet
-from .train import Trainer
-from ..base.options import get_options
+from tf_models.mnist.model import Model
+from tf_models.mnist.lecun_5_model import Lecun5Model
+from tf_models.mnist.data_set import DataSet
+from tf_models.mnist.train import Trainer
+from tf_models.base.options import get_options
 import traceback
 import getopt
 import sys

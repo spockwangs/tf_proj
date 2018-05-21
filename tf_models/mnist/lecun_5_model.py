@@ -1,4 +1,4 @@
-from ..base.model import BaseModel
+from tf_models.base.model import BaseModel
 import tensorflow as tf
 
 class Lecun5Model(BaseModel):

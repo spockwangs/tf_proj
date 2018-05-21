@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 from tqdm import tqdm
 import numpy as np
-from .logger import Logger
+from tf_models.base.logger import Logger
 
 class BaseTrain:
     def __init__(self, sess, model, data, options):

@@ -1,4 +1,4 @@
-from ..base.data_set import BaseDataSet
+from tf_models.base.data_set import BaseDataSet
 import numpy as np
 import tensorflow as tf
 

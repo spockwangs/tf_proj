@@ -1,4 +1,4 @@
-from ..base.train import BaseTrain
+from tf_models.base.train import BaseTrain
 from tqdm import tqdm
 import numpy as np
 
