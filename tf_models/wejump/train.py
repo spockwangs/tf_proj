@@ -33,12 +33,11 @@ def main(argv=None):
         model = Model(options)
         model.load()
         data = DataSet(options)
+        model.fit(data)
         if test:
             x, y = data.test_set()
             score = model.score(x, y)
             print("score={}".format(score))
-        else:
-            model.fit(data)
     except Usage:
         print("{} [ -c | --config config file ] [ --test ] [ --help ]".format(
             sys.argv[0]))

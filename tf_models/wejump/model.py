@@ -61,7 +61,7 @@ class Model(BaseModel):
         self.keep_prob = tf.placeholder(tf.float32)
 
         self.pred = self.forward(self.x, self.is_training, self.keep_prob)
-        self.loss = tf.reduce_mean(tf.sqrt(tf.pow(self.pred - self.y, 2) + 1e-12))
+        self.loss = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(self.pred - self.y), 1)))
         optimizer = tf.train.AdamOptimizer(self.options.learning_rate)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
@@ -82,15 +82,14 @@ class Model(BaseModel):
             self.keep_prob: self.options.keep_prob
         }
         _, loss = self.sess.run([self.train_op, self.loss], feed_dict=feed_dict)
-        cur_it = self.global_step_tensor.eval(self.sess)
-        return cur_it, loss
+        return loss
 
     def score(self, x, y):
         feed_dict = {
             self.x: x,
             self.y: y,
             self.is_training: False,
-            self.keep_prob: 1
+            self.keep_prob: 1.0
         }
         loss = self.sess.run([self.loss], feed_dict=feed_dict)
         return loss
