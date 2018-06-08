@@ -6,9 +6,9 @@ import os, glob, shutil
 import cv2
 import argparse
 import tensorflow as tf
-
+from tf_models.base.options import get_options
 from tf_models.wejump.model import Model
-from model_fine import JumpModelFine
+#from model_fine import JumpModelFine
 
 def multi_scale_search(pivot, screen, range=0.3, num=10):
     H, W = screen.shape[:2]
@@ -53,31 +53,29 @@ class WechatAutoJump(object):
                 os.mkdir(self.debug)
 
     def load_resource(self):
-        self.player = cv2.imread(os.path.join(self.resource_dir, 'player.png'), 0)
-
-        sess = tf.Session()
+        self.player = cv2.imread('player.png', 0)
         options = get_options(self.config)
         self.model = Model(options)
-        self.model.load(sess)
+        self.model.load()
         
         # network initization
-        self.net = JumpModel()
-        self.net_fine = JumpModelFine()
+        #self.net = JumpModel()
+        #self.net_fine = JumpModelFine()
         self.img = tf.placeholder(tf.float32, [None, 640, 720, 3], name='img')
         self.img_fine = tf.placeholder(tf.float32, [None, 320, 320, 3], name='img_fine')
         self.label = tf.placeholder(tf.float32, [None, 2], name='label')
         self.is_training = tf.placeholder(np.bool, name='is_training')
         self.keep_prob = tf.placeholder(np.float32, name='keep_prob')
-        self.pred = self.net.forward(self.img, self.is_training, self.keep_prob)
-        self.pred_fine = self.net_fine.forward(self.img_fine, self.is_training, self.keep_prob)
+        #self.pred = self.net.forward(self.img, self.is_training, self.keep_prob)
+        #self.pred_fine = self.net_fine.forward(self.img_fine, self.is_training, self.keep_prob)
 
         all_vars = tf.all_variables()
         var_coarse = [k for k in all_vars if k.name.startswith('coarse')]
         var_fine = [k for k in all_vars if k.name.startswith('fine')]
-        self.saver_coarse = tf.train.Saver(var_coarse)
-        self.saver_fine = tf.train.Saver(var_fine)
-        self.saver_coarse.restore(self.sess, self.ckpt)
-        self.saver_fine.restore(self.sess, self.ckpt_fine)
+        #self.saver_coarse = tf.train.Saver(var_coarse)
+        #self.saver_fine = tf.train.Saver(var_fine)
+        #self.saver_coarse.restore(self.sess, self.ckpt)
+        #self.saver_fine.restore(self.sess, self.ckpt_fine)
         print('==== successfully restored ====')
 
     def get_current_state(self):
@@ -116,8 +114,11 @@ class WechatAutoJump(object):
         return np.array([h, w])
 
     def get_target_position(self, state, player_pos):
-        pred_out = self.model.predict(self.sess, np.expand_dims(state[320:-320], 0))
-        return pred_out
+        print('{}'.format(state.shape))
+        state = np.expand_dims(state[480:-480, 200:-200], 0)
+        print('{}'.format(state.shape))
+        pred_out = self.model.predict(state)
+        return pred_out + np.array([480, 200])
         
         feed_dict = {
             self.img: np.expand_dims(state[320:-320], 0),
@@ -186,12 +187,13 @@ class WechatAutoJump(object):
             self.target_pos = self.get_target_position(self.state, self.player_pos)
             print('CNN-search: %04d' % self.step)
         else:
-            try:
-                self.target_pos = self.get_target_position_fast(self.state, self.player_pos)
-                print('fast-search: %04d' % self.step)
-            except UnboundLocalError:
-                self.target_pos = self.get_target_position(self.state, self.player_pos)
-                print('CNN-search: %04d' % self.step)
+#            try:
+#                self.target_pos = self.get_target_position_fast(self.state, self.player_pos)
+#                print('fast-search: %04d' % self.step)
+#            except UnboundLocalError:
+            self.target_pos = self.get_target_position(self.state, self.player_pos)
+            print('CNN-search: %04d' % self.step)
+            print('target_pos: {}'.format(self.target_pos))
         if self.debug:
             self.debugging()
         self.jump(self.player_pos, self.target_pos)

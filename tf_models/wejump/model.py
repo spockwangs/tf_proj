@@ -49,14 +49,14 @@ class Model(BaseModel):
                 out = self.make_conv_bn_relu('conv5', out, [9, 9, 256, 512], 1, is_training)
                 out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
 
-                out = tf.reshape(out, [-1, 512 * 10 * 10])
-                out = self.make_fc('fc1', out, [512 * 10 * 10, 512], keep_prob)
+                out = tf.reshape(out, [-1, 512 * 20 * 23])
+                out = self.make_fc('fc1', out, [512 * 20 * 23, 512], keep_prob)
                 out = self.make_fc('fc2', out, [512, 2], keep_prob)
         return out
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
-        self.x = tf.placeholder(tf.float32, shape=[None, 320, 320, 3])
+        self.x = tf.placeholder(tf.float32, shape=[None, 640, 720, 3])
         self.y = tf.placeholder(tf.float32, shape=[None, 2])
         self.keep_prob = tf.placeholder(tf.float32)
 
