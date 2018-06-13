@@ -53,7 +53,7 @@ class WechatAutoJump(object):
                 os.mkdir(self.debug)
 
     def load_resource(self):
-        self.player = cv2.imread('player.png', 0)
+        self.player = cv2.imread('tf_models/wejump/player.png', 0)
         options = get_options(self.config)
         self.model = Model(options)
         self.model.load()
@@ -211,7 +211,6 @@ if __name__ == "__main__":
     parser.add_argument('--phone', default='Android', choices=['Android', 'IOS'], type=str, help='mobile phone OS')
     parser.add_argument('--sensitivity', default=2.045, type=float, help='constant for press time')
     parser.add_argument('--serverURL', default='http://localhost:8100', type=str, help='ServerURL for wda Client')
-    parser.add_argument('--resource', default='resource', type=str, help='resource dir')
     parser.add_argument('--debug', default=None, type=str, help='debug mode, specify a directory for storing log files.')
     parser.add_argument('--config', default='config.json', type=str, help='config file')
     args = parser.parse_args()
