@@ -6,7 +6,7 @@ import numpy as np
 class BaseModel:
     def __init__(self, options):
         self.options = options
-        self.sess = tf.Session()
+        self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         self.init_global_step()
         self.build_model()
         self.init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
