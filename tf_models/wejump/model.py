@@ -35,7 +35,7 @@ class Model(BaseModel):
             out = tf.nn.relu(out, name=scope.name)
 
         with tf.variable_scope('conv2'):
-            out = self.make_conv_bn_relu('conv2', out, [3, 3, 16, 64], 1, is_training)
+            out = self.make_conv_bn_relu(out, [3, 3, 16, 64], 1, is_training)
             out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
             
         with tf.variable_scope('conv3'):
