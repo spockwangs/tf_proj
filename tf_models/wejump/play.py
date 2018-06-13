@@ -114,11 +114,10 @@ class WechatAutoJump(object):
         return np.array([h, w])
 
     def get_target_position(self, state, player_pos):
+        state = np.expand_dims(state[320:-320], 0)
         print('{}'.format(state.shape))
-        state = np.expand_dims(state[480:-480, 200:-200], 0)
-        print('{}'.format(state.shape))
-        pred_out = self.model.predict(state)
-        return pred_out + np.array([480, 200])
+        pred_out = self.model.predict(state).astype(int)
+        return pred_out + np.array([320, 0])
         
         feed_dict = {
             self.img: np.expand_dims(state[320:-320], 0),

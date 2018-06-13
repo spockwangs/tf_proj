@@ -68,11 +68,12 @@ class Model(BaseModel):
             self.train_op = optimizer.minimize(self.loss)
 
     def predict(self, x):
-        return self.sess.run([self.pred], feed_dict={
+        predict_y = self.sess.run(self.pred, feed_dict={
             self.x: x,
             self.is_training: False,
             self.keep_prob: 1
         })
+        return predict_y[0]
 
     def train_step(self, x, y):
         feed_dict = {

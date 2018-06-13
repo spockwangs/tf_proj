@@ -42,33 +42,17 @@ class DataSet(BaseDataSet):
             x, y = name[name.index('_h_') + 3: name.index('_h_') + 6], name[name.index('_w_') + 3: name.index('_w_') + 6]
             x, y = int(x), int(y)
             img = cv2.imread(img_name)
-            # img = img[320: -320, :, :]
-            # 将中间的白点去除。
+
+            # 将中间的白点去除，用附近的颜色填充。
             mask1 = (img[:, :, 0] == 245)
             mask2 = (img[:, :, 1] == 245)
             mask3 = (img[:, :, 2] == 245)
             mask = mask1 * mask2 * mask3
             img[mask] = img[x + 10, y + 14, :]
-            x_a = np.random.randint(-50, 50)
-            y_a = np.random.randint(-50, 50)
 
-            # 截取目标点上下左右320*320的区域作为训练特征，同时调整目标点的坐标。
-            x1 = x - 160 + x_a
-            x2 = x + 160 + x_a
-            y1 = y - 160 + y_a
-            y2 = y + 160 + y_a
-            x = 160 - x_a
-            y = 160 - y_a
-            if y1 < 0:
-                y = 160 - y_a + y1
-                y1 = 0
-                y2 = 320
-            if y2 > img.shape[1]:
-                y = 160 - y_a + y2 - img.shape[1]
-                y2 = img.shape[1]
-                y1 = y2 - 320
-            img = img[x1: x2, y1: y2, :]
-            label = np.array([x, y], dtype=np.float32)
+            # 截取中间的640*720的区域作为训练特征，同时调整目标点的坐标。
+            img = img[320:-320, :, :]
+            label = np.array([x-320, y], dtype=np.float32)
 
             if idx == 0:
                 batch['img'] = img[np.newaxis, :, :, :]
