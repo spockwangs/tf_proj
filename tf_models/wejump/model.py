@@ -3,9 +3,9 @@ import tensorflow as tf
 from tqdm import tqdm
 import numpy as np
 
-class Model(BaseModel):
-    def __init__(self, config):
-        super(Model, self).__init__(config)
+class Model(object):
+    def __init__(self, options):
+        self.options = options
         
     def conv2d(self, input, ks, stride):
         w = tf.get_variable('weights', shape=ks, initializer=tf.truncated_normal_initializer())
@@ -58,14 +58,13 @@ class Model(BaseModel):
             out = self.make_fc(out, [512, 2], keep_prob)
         return out
 
-    def build_model(self):
-        self.is_training = tf.placeholder(tf.bool)
-        self.x = tf.placeholder(tf.float32, shape=[None, 640, 720, 3])
-        self.y = tf.placeholder(tf.float32, shape=[None, 2])
+    def build_model(self, is_training, inputs):
+        #self.x = tf.placeholder(tf.float32, shape=[None, 640, 720, 3])
+        #self.y = tf.placeholder(tf.float32, shape=[None, 2])
         self.keep_prob = tf.placeholder(tf.float32)
-
-        self.pred = self.forward(self.x, self.is_training, self.keep_prob)
-        self.loss = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(self.pred - self.y), 1)))
+        
+        self.pred = self.forward(inputs.x, self.is_training, self.keep_prob)
+        self.loss = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(self.pred - inputs.y), 1)))
         optimizer = tf.train.AdamOptimizer(self.options.learning_rate)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
@@ -154,7 +153,7 @@ class Model(BaseModel):
                             tower_grads.append(grads)
                             grads = average_gradients(tower_grads)
                             train_op = optimizer.apply_gradients(grads)
-            for cur_epoch in range(self.cur_epoch_tensor.eval(self.sess), self.options.num_epochs + 1, 1):
+            for cur_epoch in range(self.options.num_epochs)
                 loop = tqdm(range(self.options.num_iter_per_epoch))
                 losses = []
                 for it in loop:
