@@ -67,16 +67,10 @@ def build_model(options, x, y, is_training):
         is_training: {bool} build model for training or evaluation
 
     Returns:
-        Dict: A dict which contains { 'pred', 'loss', 'train_op', 'global_variable_init_op' }.
+        Dict: A dict which contains { 'pred', 'loss' }
     '''
 
     model = {}
-    global_step = tf.train.get_or_create_global_step()
     model['pred'] = forward(x, is_training, options.keep_prob)
     model['loss'] = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(model['pred'] - y), 1)))
-    optimizer = tf.train.AdamOptimizer(options.learning_rate)
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-    with tf.control_dependencies(update_ops):
-        model['train_op'] = optimizer.minimize(model['loss'], global_step=global_step)
-    model['global_variable_init_op'] = tf.global_variables_initializer()
     return model
