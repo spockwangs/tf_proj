@@ -12,6 +12,7 @@ import sys
 from .model_fn import build_model
 from .training import train
 from .inputs import inputs
+from .evaluation import evaluate
 
 class Usage(Exception):
     pass
@@ -38,7 +39,10 @@ def main(argv=None):
         options = get_options(config)
         data_inputs = inputs(is_training, options)
         model = build_model(options, data_inputs['x'], data_inputs['y'], is_training)
-        train(options, model, data_inputs)
+        if is_training:
+            train(options, model, data_inputs)
+        else:
+            evaluate(options, model, data_inputs)
     except Usage:
         print("{} [ -c | --config config file ] [ --test ] [ --help ]".format(
             sys.argv[0]))
