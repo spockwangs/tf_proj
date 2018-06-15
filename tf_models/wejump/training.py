@@ -114,6 +114,6 @@ def train_multi_gpu(options, inputs):
                 losses.append(loss_value)
             avg_loss = np.mean(losses)
             print('loss={}'.format(avg_loss))
-            print('Saving model ...')
+            print('Saving model ... global step={}'.format(sess.run(global_step)))
             saver.save(sess, options.checkpoint_dir, global_step=global_step)
             
