@@ -6,10 +6,12 @@
 
 
 import tensorflow as tf
-from .model_fn import build_model
+import tf_models.wejump.model_fn as model_fn
 import numpy as np
 
-def evaluate(options, model, inputs):
+def evaluate(options, inputs):
+    predict = model_fn.inference(inputs['x'], False, 1.0)
+    loss = model_fn.loss(predict, inputs['y'])
     saver = tf.train.Saver()
     init_op = tf.global_variables_initializer()
     with tf.Session() as sess:
@@ -22,7 +24,7 @@ def evaluate(options, model, inputs):
         while True:
             losses = []
             try:
-                loss = sess.run(model['loss'])
+                loss = sess.run(loss)
                 losses.append(loss)
             except tf.errors.OutOfRangeError:
                 pass

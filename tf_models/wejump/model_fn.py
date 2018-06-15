@@ -7,9 +7,22 @@
 
 import tensorflow as tf
 
+def _variable_on_cpu(name, shape, initializer):
+  """Helper to create a Variable stored on CPU memory.
+  Args:
+    name: name of the variable
+    shape: list of ints
+    initializer: initializer for Variable
+  Returns:
+    Variable Tensor
+  """
+  with tf.device('/cpu:0'):
+    var = tf.get_variable(name, shape, initializer=initializer)
+  return var
+
 def conv2d(input, ks, stride):
-    w = tf.get_variable('weights', shape=ks, initializer=tf.truncated_normal_initializer())
-    b = tf.get_variable('biases', shape=[ks[-1]], initializer=tf.constant_initializer())
+    w = _variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
+    b = _variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
     out = tf.nn.conv2d(input, w, strides=[1, stride, stride, 1], padding='SAME')
     out = tf.nn.bias_add(out, b)
     return out
@@ -21,13 +34,22 @@ def make_conv_bn_relu(input, ks, stride, is_training):
     return out
 
 def make_fc(input, ks, keep_prob):
-    w = tf.get_variable('weights', shape=ks, initializer=tf.truncated_normal_initializer())
-    b = tf.get_variable('biases', shape=[ks[-1]], initializer=tf.constant_initializer())
+    w = _variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
+    b = _variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
     out = tf.matmul(input, w)
     out = tf.nn.bias_add(out, b, name=tf.get_variable_scope().name)
     return out
 
-def forward(img, is_training, keep_prob):
+def inference(img, is_training, keep_prob):
+    """Build a model.
+    Args:
+        img: An tf.Tensor of shape [?, 640, 720]
+        is_training: training mode or evaluation mode.
+        keep_prob: an float
+
+    Returns:
+        An label.
+    """
     with tf.variable_scope('conv1') as scope:
         out = conv2d(img, [3, 3, 3, 16], 2)
         # out = tf.layers.batch_normalization(out, name='bn1', training=is_training)
@@ -57,20 +79,16 @@ def forward(img, is_training, keep_prob):
         out = make_fc(out, [512, 2], keep_prob)
     return out
 
-def build_model(options, x, y, is_training):
-    '''Build a model.
+def loss(predict_y, labels):
+    '''Compute loss.
 
     Args:
-        options: {object} hyperparmaeters
-        x: {tf.Tensor<?, 640, 720>} input features
-        y: {tf.Tensor<?, 2>} labels
-        is_training: {bool} build model for training or evaluation
+        predict_y: the predictions from inference().
+        labels: labels from the inputs.
 
     Returns:
-        Dict: A dict which contains { 'pred', 'loss' }
+        Loss tensor.
     '''
 
-    model = {}
-    model['pred'] = forward(x, is_training, options.keep_prob)
-    model['loss'] = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(model['pred'] - y), 1)))
-    return model
+    return tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(predict_y - labels), 1)))
+

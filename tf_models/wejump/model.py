@@ -151,8 +151,8 @@ class Model(object):
                             tf.get_variable_scope().reuse_variables()
                             grads = optimizer.compute_gradients(loss)
                             tower_grads.append(grads)
-                            grads = average_gradients(tower_grads)
-                            train_op = optimizer.apply_gradients(grads)
+                grads = average_gradients(tower_grads)
+                train_op = optimizer.apply_gradients(grads)
             for cur_epoch in range(self.options.num_epochs)
                 loop = tqdm(range(self.options.num_iter_per_epoch))
                 losses = []

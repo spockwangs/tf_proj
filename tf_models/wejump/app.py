@@ -9,7 +9,6 @@ from ..base.options import get_options
 import traceback
 import getopt
 import sys
-from .model_fn import build_model
 from .training import train
 from .inputs import inputs
 from .evaluation import evaluate
@@ -37,10 +36,10 @@ def main(argv=None):
             raise Usage("bad value for option: -c")
         
         options = get_options(config)
-        data_inputs = inputs(is_training, options)
-        model = build_model(options, data_inputs['x'], data_inputs['y'], is_training)
+        with tf.device("/cpu:0"):
+            data_inputs = inputs(is_training, options)
         if is_training:
-            train(options, model, data_inputs)
+            train(options, data_inputs)
         else:
             evaluate(options, model, data_inputs)
     except Usage:
@@ -51,5 +50,3 @@ def main(argv=None):
         traceback.print_exc()
         return -1
     
-if __name__ == '__main__':
-    sys.exit(main())
