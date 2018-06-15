@@ -83,7 +83,7 @@ def train_multi_gpu(options, inputs):
         optimizer = tf.train.AdamOptimizer(options.learning_rate)
         tower_grads = []
         with tf.variable_scope(tf.get_variable_scope()):
-            for i in xrange(options.num_gpus):
+            for i in range(options.num_gpus):
                 with tf.device('/gpu:%d' % i):
                     with tf.name_scope('tower_%d' % i) as scope:
                         predict = model_fn.inference(inputs['x'], True, options.keep_prob)
