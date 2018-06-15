@@ -47,8 +47,9 @@ def average_gradients(tower_grads):
         Note that this function provides a synchronization point across all towers.
         Args:
             tower_grads: List of lists of (gradient, variable) tuples. The outer list
-        is over individual gradients. The inner list is over the gradient
-        calculation for each tower.
+        is over individual towers. individual gradients. The inner list is over individual
+        gradients for each tower.
+
         Returns:
             List of pairs of (gradient, variable) where the gradient has been averaged
         across all towers.
