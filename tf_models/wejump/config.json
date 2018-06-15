@@ -1,11 +1,14 @@
 {
     "learning_rate": 0.01,
+    "decay_steps": 10000,
+    "decay_rate": 0.1,
     "keep_prob": 0.75,
     "batch_size": 16,
     "num_epochs": 100,
-    "num_iter_per_epoch": 10,
+    "num_iter_per_epoch": 100,
     "checkpoint_dir": "wejump_checkpoint/",
     "summary_dir": "wejump_summary/",
     "max_to_keep": 2,
-    "data_dir": "tf_models/wejump/data/"
+    "data_dir": "tf_models/wejump/data/",
+    "num_gpus": 3
 }

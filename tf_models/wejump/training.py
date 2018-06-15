@@ -80,7 +80,9 @@ def average_gradients(tower_grads):
 def train_multi_gpu(options, inputs):
     with tf.device('/cpu:0'):
         global_step = tf.train.get_or_create_global_step()
-        optimizer = tf.train.AdamOptimizer(options.learning_rate)
+        lr = tf.train.exponential_decay(options.learning_rate, global_step, options.decay_steps,
+                                        options.decay_rate, staircase=True)
+        optimizer = tf.train.AdamOptimizer(lr)
         tower_grads = []
         with tf.variable_scope(tf.get_variable_scope()):
             for i in range(options.num_gpus):
