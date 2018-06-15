@@ -35,8 +35,8 @@ def train(options, inputs):
             loop = tqdm(range(options.num_iter_per_epoch))
             losses = []
             for it in loop:
-                _, loss = sess.run([train_op, loss])
-                losses.append(loss)
+                _, loss_value = sess.run([train_op, loss])
+                losses.append(loss_value)
             avg_loss = np.mean(losses)
             print('loss={}'.format(avg_loss))
             print('Saving model ...')

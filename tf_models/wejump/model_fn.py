@@ -91,4 +91,3 @@ def loss(predict_y, labels):
     '''
 
     return tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(predict_y - labels), 1)))
-
