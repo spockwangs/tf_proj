@@ -62,7 +62,7 @@ def train_multi_gpu(options, inputs):
                 train_op = optimizer.apply_gradients(grads, global_step=global_step)
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver(max_to_keep=options.max_to_keep)
-        sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True)
+        sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         sess.run([inputs['iterator_init_op'], init_op])
         latest_checkpoint = tf.train.latest_checkpoint(options.checkpoint_dir)
         if latest_checkpoint:
