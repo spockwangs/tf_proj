@@ -41,7 +41,7 @@ def main(argv=None):
         if is_training:
             train(options, data_inputs)
         else:
-            evaluate(options, model, data_inputs)
+            evaluate(options, data_inputs)
     except Usage:
         print("{} [ -c | --config config file ] [ --test ] [ --help ]".format(
             sys.argv[0]))
