@@ -85,7 +85,7 @@ def inputs(is_training, options):
         dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list[200:]),
                                                    output_types=(tf.float32, tf.float32),
                                                    output_shapes=((640, 720, 3), (2,)))
-        dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size)
+        dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*options.num_gpus)
     else:
         dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list[:200]),
                                                    output_types=(tf.float32, tf.float32),

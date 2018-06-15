@@ -91,10 +91,10 @@ def train_multi_gpu(options, inputs):
                         tf.get_variable_scope().reuse_variables()
                         grads = optimizer.compute_gradients(loss)
                         tower_grads.append(grads)
-            grads = average_gradients(tower_grads)
-            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-            with tf.control_dependencies(update_ops):
-                train_op = optimizer.apply_gradients(grads, global_step=global_step)
+        grads = average_gradients(tower_grads)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            train_op = optimizer.apply_gradients(grads, global_step=global_step)
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver(max_to_keep=options.max_to_keep)
         sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
@@ -108,7 +108,7 @@ def train_multi_gpu(options, inputs):
             loop = tqdm(range(options.num_iter_per_epoch))
             losses = []
             for it in loop:
-                _, loss_value = sess.run([train_op, model['loss']])
+                _, loss_value = sess.run([train_op, loss])
                 losses.append(loss_value)
             avg_loss = np.mean(losses)
             print('loss={}'.format(avg_loss))
