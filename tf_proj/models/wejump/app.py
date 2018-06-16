@@ -11,7 +11,6 @@ import getopt
 import sys
 import os
 from .training import train
-from .inputs import inputs
 from .evaluation import evaluate
 
 class Usage(Exception):
@@ -37,12 +36,10 @@ def main(argv=None):
             raise Usage("bad value for option: -c")
         
         options = get_options(config)
-        with tf.device("/cpu:0"):
-            data_inputs = inputs(is_training, options)
         if is_training:
-            train(options, data_inputs)
+            train(options)
         else:
-            evaluate(options, data_inputs)
+            evaluate(options)
     except Usage:
         print("{} [ -c | --config config file ] [ --test ] [ --help ]".format(
             sys.argv[0]))

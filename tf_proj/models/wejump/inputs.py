@@ -61,42 +61,51 @@ def get_data_batch(batch_name):
             batch['label'] = np.concatenate((batch['label'], label_tmp), axis=0)
     return batch['img'], batch['label']
 
-def inputs(is_training, options):
+def _generator(name_list):
+    for name in name_list:
+        x, y = get_data_batch([name])
+        yield x[0], y[0]
+
+def get_train_inputs(options):
+    """Returns train inputs.
+    Args:
+        options: dict
+    Returns:
+        features: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
+        labels: 2-D tf.Tensor labels of shape [batch_size, 2].
+        init_op: operation to init the input pipeline.
+    """
+    name_list = get_name_list(options.data_dir)
+    name_list = name_list[200:]
+    dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
+                                               output_types=(tf.float32, tf.float32),
+                                               output_shapes=((640, 720, 3), (2,)))
+    num = options.num_gpus
+    if num <= 0:
+        num = 1
+    dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*num)
+    iter = dataset.make_initializable_iterator()
+    x, y = iter.get_next()
+    iterator_init_op = iter.initializer
+    return x, y, iterator_init_op
+    
+def get_eval_inputs(options):
     '''
     Args:
         is_trainig: bool
         options: dict
     Returns:
-        An dict with following keys:
-            x: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
-            y: 2-D tf.Tensor labels of shape [batch_size, 2].
-            init_op: operation to init the input pipeline.
+        features: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
+        labels: 2-D tf.Tensor labels of shape [batch_size, 2].
+        init_op: operation to init the input pipeline.
     '''
     name_list = get_name_list(options.data_dir)
-    def _generator(name_list):
-        for name in name_list:
-            x, y = get_data_batch([name])
-            yield x[0], y[0]
-    if is_training:
-        dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list[200:]),
-                                                   output_types=(tf.float32, tf.float32),
-                                                   output_shapes=((640, 720, 3), (2,)))
-        num = options.num_gpus
-        if num <= 0:
-            num = 1
-        dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*num)
-    else:
-        dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list[:200]),
-                                                   output_types=(tf.float32, tf.float32),
-                                                   output_shapes=((640, 720, 3), (2,)))
-        dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
-
+    name_list = name_list[:200]
+    dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
+                                               output_types=(tf.float32, tf.float32),
+                                               output_shapes=((640, 720, 3), (2,)))
+    dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
     iter = dataset.make_initializable_iterator()
     x, y = iter.get_next()
     iterator_init_op = iter.initializer
-    inputs = {
-        'x': x,
-        'y': y,
-        'init_op': iterator_init_op
-    }
-    return inputs
+    return x, y, iterator_init_op

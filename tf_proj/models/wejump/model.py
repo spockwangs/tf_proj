@@ -27,18 +27,22 @@ def make_fc(input, ks, keep_prob):
     out = tf.nn.bias_add(out, b, name=tf.get_variable_scope().name)
     return out
 
-def inference(img, is_training, keep_prob):
+def inference(options, features, is_training):
     """Build a model.
     Args:
-        img: An tf.Tensor of shape [?, 640, 720]
+        options (dict): hyper parameters
+        features: An tf.Tensor of shape [?, 640, 720, 3]
         is_training: training mode or evaluation mode.
-        keep_prob: an float
 
     Returns:
         An label.
     """
+    if is_training:
+        keep_prob = options.keep_prob
+    else:
+        keep_prob = 1.0
     with tf.variable_scope('conv1') as scope:
-        out = conv2d(img, [3, 3, 3, 16], 2)
+        out = conv2d(features, [3, 3, 3, 16], 2)
         # out = tf.layers.batch_normalization(out, name='bn1', training=is_training)
         out = tf.nn.relu(out, name=scope.name)
 
@@ -66,15 +70,53 @@ def inference(img, is_training, keep_prob):
         out = make_fc(out, [512, 2], keep_prob)
     return out
 
-def loss(predict_y, labels):
+def compute_loss(predictions, labels):
     '''Compute loss.
 
     Args:
-        predict_y: the predictions from inference().
+        predictions: the predictions from inference().
         labels: labels from the inputs.
 
     Returns:
         Loss tensor.
     '''
 
-    return tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(predict_y - labels), 1)))
+    return tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), 1)))
+
+def get_train_op_and_loss(options, features, labels, global_step):
+    """Get train op and loss.
+    Args:
+        options (dict): An object which contains the hyper-parameters.
+        features (tf.Tensor)
+        labels (tf.Tensor)
+        global_step (tf.Variable)
+    Returns:
+        train_op: Train opertation.
+        loss: loss tensor.
+    """
+    with tf.device('/cpu:0'):
+        lr = tf.train.exponential_decay(options.learning_rate, global_step, options.decay_steps,
+                                        options.decay_rate, staircase=True)
+        optimizer = tf.train.AdamOptimizer(lr)
+        if options.num_gpus == 0:
+            predict = inference(options, features, is_training=True)
+            loss = compute_loss(predict, labels)
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                train_op = optimizer.minimize(loss, global_step=global_step)
+        else:
+            tower_grads = []
+            with tf.variable_scope(tf.get_variable_scope()):
+                for i in range(options.num_gpus):
+                    with tf.device('/gpu:%d' % i):
+                        with tf.name_scope('tower_%d' % i) as scope:
+                            predict = inference(options, features, is_training=True)
+                            loss = compute_loss(predict, labels)
+                            tf.get_variable_scope().reuse_variables()
+                            grads = optimizer.compute_gradients(loss)
+                            tower_grads.append(grads)
+            grads = average_gradients(tower_grads)
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                train_op = optimizer.apply_gradients(grads, global_step=global_step)
+    return train_op, loss
