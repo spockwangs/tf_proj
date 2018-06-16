@@ -30,8 +30,9 @@ def train2(options):
                 self._assign_op = tf.assign(global_step, restored_step)
             
         def after_create_session(self, session, coord):
-            session.run(self._assign_op)
-            print('restored global_step={}'.format(session.run(global_step)))
+            if self._assign_op:
+                session.run(self._assign_op)
+                print('restored global_step={}'.format(session.run(global_step)))
 
         def before_run(self, run_context):
             return tf.train.SessionRunArgs([loss, global_step])  # Asks for loss value.
