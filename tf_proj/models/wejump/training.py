@@ -37,7 +37,6 @@ def train2(options):
     init_op = tf.global_variables_initializer()
     tf.logging.set_verbosity(tf.logging.INFO)
     with tf.train.MonitoredTrainingSession(
-            checkpoint_dir=options.checkpoint_dir,
             hooks=[
                 _StopAtLittelLoss(),
                 tf.train.CheckpointSaverHook(
