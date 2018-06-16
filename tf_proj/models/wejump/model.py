@@ -4,25 +4,12 @@
 # @author spockwang@tencent.com
 #
 
-
 import tensorflow as tf
-
-def _variable_on_cpu(name, shape, initializer):
-  """Helper to create a Variable stored on CPU memory.
-  Args:
-    name: name of the variable
-    shape: list of ints
-    initializer: initializer for Variable
-  Returns:
-    Variable Tensor
-  """
-  with tf.device('/cpu:0'):
-    var = tf.get_variable(name, shape, initializer=initializer)
-  return var
+import tf_proj.base.utils as utils
 
 def conv2d(input, ks, stride):
-    w = _variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
-    b = _variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
+    w = utils.variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
+    b = utils.variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
     out = tf.nn.conv2d(input, w, strides=[1, stride, stride, 1], padding='SAME')
     out = tf.nn.bias_add(out, b)
     return out
@@ -34,8 +21,8 @@ def make_conv_bn_relu(input, ks, stride, is_training):
     return out
 
 def make_fc(input, ks, keep_prob):
-    w = _variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
-    b = _variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
+    w = utils.variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
+    b = utils.variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
     out = tf.matmul(input, w)
     out = tf.nn.bias_add(out, b, name=tf.get_variable_scope().name)
     return out

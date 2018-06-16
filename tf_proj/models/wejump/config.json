@@ -9,6 +9,6 @@
     "checkpoint_dir": "wejump_checkpoint/",
     "summary_dir": "wejump_summary/",
     "max_to_keep": 2,
-    "data_dir": "tf_models/wejump/data/",
-    "num_gpus": 3
+    "data_dir": "tf_proj/models/wejump/data/",
+    "num_gpus": 0
 }

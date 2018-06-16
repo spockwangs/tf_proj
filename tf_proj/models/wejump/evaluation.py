@@ -6,16 +6,16 @@
 
 
 import tensorflow as tf
-import tf_models.wejump.model_fn as model_fn
 import numpy as np
+import tf_proj.models.wejump.model as model
 
 def evaluate(options, inputs):
-    predict = model_fn.inference(inputs['x'], False, 1.0)
-    loss = model_fn.loss(predict, inputs['y'])
+    predict = model.inference(inputs['x'], False, 1.0)
+    loss = model.loss(predict, inputs['y'])
     saver = tf.train.Saver()
     init_op = tf.global_variables_initializer()
     with tf.Session() as sess:
-        sess.run([inputs['iterator_init_op'], init_op])
+        sess.run([inputs['init_op'], init_op])
         latest_checkpoint = tf.train.latest_checkpoint(options.checkpoint_dir)
         if latest_checkpoint:
             print("Loading model checkpoint {} ...".format(latest_checkpoint))
