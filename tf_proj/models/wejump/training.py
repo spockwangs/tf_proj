@@ -19,39 +19,45 @@ def train2(options):
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     tf.summary.scalar('loss', loss)
     
-    class _StopAtLittelLoss(tf.train.SessionRunHook):
-        def begin(self):
-            pass
+    class _StopAtLoss(tf.train.SessionRunHook):
+        def __init__(self, loss):
+            self._stop_loss = loss
             
+        def begin(self):
+            ckpt_path = tf.train.latest_checkpoint(options.checkpoint_dir)
+            if ckpt_path:
+                restored_step = int(ckpt_path.split('/')[-1].split('-')[-1])
+                self._assign_op = tf.assign(global_step, restored_step)
+            
+        def after_create_session(self, session, coord):
+            session.run(self._assign_op)
+            print('restored global_step={}'.format(session.run(global_step)))
+
         def before_run(self, run_context):
             return tf.train.SessionRunArgs([loss, global_step])  # Asks for loss value.
 
         def after_run(self, run_context, run_values):
             loss_value, step = run_values.results
-            if step % 1000 == 0:
+            if step % 10 == 0:
                 format_str = ('%s: step %d, loss = %.2f')
                 print(format_str % (datetime.now(), step, loss_value))
-                if loss_value < 3:
+                if loss_value < self._stop_loss:
                     run_context.request_stop()
-          
+
     init_op = tf.global_variables_initializer()
     tf.logging.set_verbosity(tf.logging.INFO)
     with tf.train.MonitoredTrainingSession(
             hooks=[
-                _StopAtLittelLoss(),
+                _StopAtLoss(1.0),
                 tf.train.CheckpointSaverHook(
                     checkpoint_dir=options.checkpoint_dir,
-                    save_steps=1000,
+                    save_steps=100,
                     saver=saver,
                     checkpoint_basename="wejump.ckpt"),
                 tf.train.SummarySaverHook(
-                    save_steps=100,
+                    save_steps=10,
                     output_dir=options.summary_dir,
-                    summary_op=tf.summary.merge_all()),
-                tf.train.LoggingTensorHook(
-                    { "loss": loss },
-                    every_n_iter=1,
-                    at_end=True)
+                    summary_op=tf.summary.merge_all())
             ],
             config=tf.ConfigProto(allow_soft_placement=True)) as mon_sess:
         while not mon_sess.should_stop():
