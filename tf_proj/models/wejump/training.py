@@ -4,7 +4,7 @@
 # @author spockwang@tencent.com
 #
 
-import datetime
+from datetime import datetime
 import tensorflow as tf
 import numpy as np
 from tqdm import tqdm

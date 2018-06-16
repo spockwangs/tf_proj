@@ -115,7 +115,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
                             tf.get_variable_scope().reuse_variables()
                             grads = optimizer.compute_gradients(loss)
                             tower_grads.append(grads)
-            grads = average_gradients(tower_grads)
+            grads = utils.average_gradients(tower_grads)
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             with tf.control_dependencies(update_ops):
                 train_op = optimizer.apply_gradients(grads, global_step=global_step)

@@ -10,5 +10,5 @@
     "summary_dir": "tf_proj/models/wejump/summary/",
     "max_to_keep": 2,
     "data_dir": "tf_proj/models/wejump/data/",
-    "num_gpus": 0
+    "num_gpus": 4
 }
