@@ -30,7 +30,7 @@ def train2(options):
                 self._assign_op = tf.assign(global_step, restored_step)
             
         def after_create_session(self, session, coord):
-            if self._assign_op:
+            if hasattr(self, '_assign_op') and self._assign_op:
                 session.run(self._assign_op)
                 print('restored global_step={}'.format(session.run(global_step)))
 
