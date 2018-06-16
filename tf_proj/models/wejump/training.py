@@ -4,7 +4,7 @@
 # @author spockwang@tencent.com
 #
 
-import datetime
+from datetime import datetime
 import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
@@ -28,7 +28,7 @@ def train2(options):
 
         def after_run(self, run_context, run_values):
             loss_value, step = run_values.results
-            if step % 1000 == 0:
+            if step % 10 == 0:
                 format_str = ('%s: step %d, loss = %.2f')
                 print(format_str % (datetime.now(), step, loss_value))
                 if loss_value < 3:
@@ -41,16 +41,16 @@ def train2(options):
                 _StopAtLittelLoss(),
                 tf.train.CheckpointSaverHook(
                     checkpoint_dir=options.checkpoint_dir,
-                    save_steps=1000,
+                    save_steps=100,
                     saver=saver,
                     checkpoint_basename="wejump.ckpt"),
                 tf.train.SummarySaverHook(
-                    save_steps=100,
+                    save_steps=10,
                     output_dir=options.summary_dir,
                     summary_op=tf.summary.merge_all()),
                 tf.train.LoggingTensorHook(
                     { "loss": loss },
-                    every_n_iter=1,
+                    every_n_iter=10,
                     at_end=True)
             ],
             config=tf.ConfigProto(allow_soft_placement=True)) as mon_sess:
