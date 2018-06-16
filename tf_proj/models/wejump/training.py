@@ -4,6 +4,7 @@
 # @author spockwang@tencent.com
 #
 
+import datetime
 import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
@@ -11,6 +12,52 @@ import tf_proj.base.utils as utils
 import tf_proj.models.wejump.model as model
 from .inputs import get_train_inputs
 
+def train2(options):
+    global_step = tf.train.get_or_create_global_step()
+    features, labels, inputs_init_op = get_train_inputs(options)
+    train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
+    saver = tf.train.Saver(max_to_keep=options.max_to_keep)
+    tf.summary.scalar('loss', loss)
+    
+    class _StopAtLittelLoss(tf.train.SessionRunHook):
+        def begin(self):
+            pass
+            
+        def before_run(self, run_context):
+            return tf.train.SessionRunArgs([loss, global_step])  # Asks for loss value.
+
+        def after_run(self, run_context, run_values):
+            loss_value, step = run_values.results
+            if step % 1000 == 0:
+                format_str = ('%s: step %d, loss = %.2f')
+                print(format_str % (datetime.now(), step, loss_value))
+                if loss_value < 3:
+                    run_context.request_stop()
+          
+    init_op = tf.global_variables_initializer()
+    tf.logging.set_verbosity(tf.logging.INFO)
+    with tf.train.MonitoredTrainingSession(
+            checkpoint_dir=options.checkpoint_dir,
+            hooks=[
+                _StopAtLittelLoss(),
+                tf.train.CheckpointSaverHook(
+                    checkpoint_dir=options.checkpoint_dir,
+                    save_steps=1000,
+                    saver=saver,
+                    checkpoint_basename="wejump.ckpt"),
+                tf.train.SummarySaverHook(
+                    save_steps=100,
+                    output_dir=options.summary_dir,
+                    summary_op=tf.summary.merge_all()),
+                tf.train.LoggingTensorHook(
+                    { "loss": loss },
+                    every_n_iter=1,
+                    at_end=True)
+            ],
+            config=tf.ConfigProto(allow_soft_placement=True)) as mon_sess:
+        while not mon_sess.should_stop():
+            mon_sess.run(train_op)
+        
 def train(options):
     """Train the model.
     Args:
@@ -38,4 +85,5 @@ def train(options):
             print('loss={}'.format(avg_loss))
             print('Saving model ...')
             saver.save(sess, options.checkpoint_dir, global_step=global_step)
+
 

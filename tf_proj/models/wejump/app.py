@@ -10,7 +10,7 @@ import traceback
 import getopt
 import sys
 import os
-from .training import train
+from .training import train2
 from .evaluation import evaluate
 
 class Usage(Exception):
@@ -37,7 +37,7 @@ def main(argv=None):
         
         options = get_options(config)
         if is_training:
-            train(options)
+            train2(options)
         else:
             evaluate(options)
     except Usage:

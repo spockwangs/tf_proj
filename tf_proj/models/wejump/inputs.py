@@ -84,10 +84,9 @@ def get_train_inputs(options):
     if num <= 0:
         num = 1
     dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*num)
-    iter = dataset.make_initializable_iterator()
+    iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
-    iterator_init_op = iter.initializer
-    return x, y, iterator_init_op
+    return x, y, None
     
 def get_eval_inputs(options):
     '''
@@ -105,7 +104,7 @@ def get_eval_inputs(options):
                                                output_types=(tf.float32, tf.float32),
                                                output_shapes=((640, 720, 3), (2,)))
     dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
-    iter = dataset.make_initializable_iterator()
+    iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
     iterator_init_op = iter.initializer
     return x, y, iterator_init_op
