@@ -107,15 +107,18 @@ def get_train_op_and_loss(options, features, labels, global_step):
                 train_op = optimizer.minimize(loss, global_step=global_step)
         else:
             tower_grads = []
+            losses = []
             with tf.variable_scope(tf.get_variable_scope()):
                 for i in range(options.num_gpus):
                     with tf.device('/gpu:%d' % i):
                         with tf.name_scope('tower_%d' % i) as scope:
                             predict = inference(options, features, is_training=True)
-                            loss = compute_loss(predict, labels)
+                            tower_loss = compute_loss(predict, labels)
+                            losses.append(tower_loss)
                             tf.get_variable_scope().reuse_variables()
-                            grads = optimizer.compute_gradients(loss)
+                            grads = optimizer.compute_gradients(tower_loss)
                             tower_grads.append(grads)
+            loss = tf.reduce_mean(losses)
             grads = utils.average_gradients(tower_grads)
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             with tf.control_dependencies(update_ops):
