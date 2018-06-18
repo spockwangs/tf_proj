@@ -106,5 +106,5 @@ def get_eval_inputs(options):
     dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
-    iterator_init_op = iter.initializer
+    iterator_init_op = None
     return x, y, iterator_init_op

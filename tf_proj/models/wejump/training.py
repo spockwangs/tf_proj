@@ -30,7 +30,7 @@ def train2(options):
                 self._assign_op = tf.assign(global_step, restored_step)
             
         def after_create_session(self, session, coord):
-            if hasattr(self, '_assign_op') and self._assign_op:
+            if hasattr(self, '_assign_op'):
                 session.run(self._assign_op)
                 print('restored global_step={}'.format(session.run(global_step)))
 
@@ -61,6 +61,11 @@ def train2(options):
                     summary_op=tf.summary.merge_all())
             ],
             config=tf.ConfigProto(allow_soft_placement=True)) as mon_sess:
+        ckpt_path = tf.train.latest_checkpoint(options.checkpoint_dir)
+        if ckpt_path:
+            print("Loading model: {}".format(ckpt_path))
+            saver.restore(mon_sess, ckpt_path)    
+            print('Model loaded')
         while not mon_sess.should_stop():
             mon_sess.run(train_op)
         

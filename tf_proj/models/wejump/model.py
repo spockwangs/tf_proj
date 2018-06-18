@@ -97,6 +97,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
     with tf.device('/cpu:0'):
         lr = tf.train.exponential_decay(
             options.learning_rate, global_step, options.decay_steps, options.decay_rate)
+        tf.summary.scalar('lr', lr)
         optimizer = tf.train.AdamOptimizer(lr)
         if options.num_gpus == 0:
             predict = inference(options, features, is_training=True)

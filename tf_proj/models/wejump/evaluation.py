@@ -17,7 +17,7 @@ def evaluate(options):
     saver = tf.train.Saver()
     init_op = tf.global_variables_initializer()
     with tf.Session() as sess:
-        sess.run([inputs_init_op, init_op])
+        sess.run([init_op])
         latest_checkpoint = tf.train.latest_checkpoint(options.checkpoint_dir)
         if latest_checkpoint:
             print("Loading model checkpoint {} ...".format(latest_checkpoint))
