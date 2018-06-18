@@ -14,8 +14,8 @@ def evaluate(options):
     features, labels = get_eval_inputs(options)
     predict = model.inference(options, features, is_training=False)
     loss = model.compute_loss(predict, labels)
-    saver = tf.train.Saver()
     init_op = tf.global_variables_initializer()
+    saver = tf.train.Saver()
     with tf.Session() as sess:
         sess.run([init_op])
         latest_checkpoint = tf.train.latest_checkpoint(options.checkpoint_dir)

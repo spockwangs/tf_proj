@@ -75,12 +75,12 @@ def train(options):
         options: An object which contains the hyper-parameters.
     """
     global_step = tf.train.get_or_create_global_step()
-    features, labels, inputs_init_op = get_train_inputs(options)
+    features, labels = get_train_inputs(options)
     train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-        sess.run([inputs_init_op, init_op])
+        sess.run([init_op])
         latest_checkpoint = tf.train.latest_checkpoint(options.checkpoint_dir)
         if latest_checkpoint:
             print("Loading model checkpoint {} ...".format(latest_checkpoint))
