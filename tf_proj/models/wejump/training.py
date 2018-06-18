@@ -14,7 +14,7 @@ from .inputs import get_train_inputs
 
 def train2(options):
     global_step = tf.train.get_or_create_global_step()
-    features, labels, inputs_init_op = get_train_inputs(options)
+    features, labels = get_train_inputs(options)
     train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     tf.summary.scalar('loss', loss)

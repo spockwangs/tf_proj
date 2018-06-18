@@ -11,7 +11,7 @@ import tf_proj.models.wejump.model as model
 from .inputs import get_eval_inputs
 
 def evaluate(options):
-    features, labels, inputs_init_op = get_eval_inputs(options)
+    features, labels = get_eval_inputs(options)
     predict = model.inference(options, features, is_training=False)
     loss = model.compute_loss(predict, labels)
     saver = tf.train.Saver()
@@ -23,14 +23,13 @@ def evaluate(options):
             print("Loading model checkpoint {} ...".format(latest_checkpoint))
             saver.restore(sess, latest_checkpoint)
             print("Model loaded")
+        losses = []
         while True:
-            losses = []
             try:
-                loss = sess.run(loss)
-                losses.append(loss)
+                loss_val = sess.run(loss)
+                losses.append(loss_val)
             except tf.errors.OutOfRangeError:
-                pass
-            avg_loss = np.mean(losses)
-            print('loss={}'.format(avg_loss))
-            break
+                break
+        avg_loss = np.mean(losses)
+        print('loss={}'.format(avg_loss))
             

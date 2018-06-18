@@ -73,7 +73,6 @@ def get_train_inputs(options):
     Returns:
         features: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
         labels: 2-D tf.Tensor labels of shape [batch_size, 2].
-        init_op: operation to init the input pipeline.
     """
     name_list = get_name_list(options.data_dir)
     name_list = name_list[200:]
@@ -86,7 +85,7 @@ def get_train_inputs(options):
     dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*num)
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
-    return x, y, None
+    return x, y
     
 def get_eval_inputs(options):
     '''
@@ -96,7 +95,6 @@ def get_eval_inputs(options):
     Returns:
         features: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
         labels: 2-D tf.Tensor labels of shape [batch_size, 2].
-        init_op: operation to init the input pipeline.
     '''
     name_list = get_name_list(options.data_dir)
     name_list = name_list[:200]
@@ -106,5 +104,4 @@ def get_eval_inputs(options):
     dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
-    iterator_init_op = None
-    return x, y, iterator_init_op
+    return x, y
