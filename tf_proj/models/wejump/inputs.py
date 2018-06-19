@@ -4,6 +4,7 @@
 # @author spockwang@tencent.com
 #
 
+import random
 import numpy as np
 import tensorflow as tf
 import cv2
@@ -62,6 +63,7 @@ def get_data_batch(batch_name):
     return batch['img'], batch['label']
 
 def _generator(name_list):
+    random.shuffle(name_list)
     for name in name_list:
         x, y = get_data_batch([name])
         yield x[0], y[0]
