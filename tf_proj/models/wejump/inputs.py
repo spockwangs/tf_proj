@@ -15,7 +15,7 @@ def get_name_list(data_dir):
         dir = os.path.join(data_dir, 'exp_%02d' % i)
         this_name = os.listdir(dir)
         this_name = [os.path.join(dir, name) for name in this_name]
-    name_list = name_list + this_name
+        name_list = name_list + this_name
     name_list_raw = name_list
     name_list = filter(lambda name: 'res' in name, name_list)
     name_list = list(name_list)
