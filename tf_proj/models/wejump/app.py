@@ -37,7 +37,7 @@ def main(argv=None):
         
         options = get_options(config)
         if is_training:
-            train(options)
+            train2(options)
         else:
             evaluate(options)
     except Usage:
