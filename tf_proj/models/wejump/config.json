@@ -3,12 +3,12 @@
     "decay_steps": 2000,
     "decay_rate": 0.1,
     "keep_prob": 0.75,
-    "batch_size": 16,
+    "batch_size": 8,
     "num_epochs": 100,
     "num_iter_per_epoch": 100,
     "checkpoint_dir": "tf_proj/models/wejump/checkpoint/",
     "summary_dir": "tf_proj/models/wejump/summary/",
     "max_to_keep": 2,
     "data_dir": "tf_proj/models/wejump/data/",
-    "gpus": [ 0, 1, 2]
+    "gpus": [ 0, 1]
 }

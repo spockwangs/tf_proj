@@ -109,7 +109,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
             tower_grads = []
             losses = []
             with tf.variable_scope(tf.get_variable_scope()):
-                for i in range(options.num_gpus):
+                for i in range(len(options.gpus)):
                     with tf.device('/gpu:%d' % i):
                         with tf.name_scope('tower_%d' % i) as scope:
                             predict = inference(options, features, is_training=True)
