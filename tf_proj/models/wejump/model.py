@@ -99,7 +99,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
             options.learning_rate, global_step, options.decay_steps, options.decay_rate, staircase=True)
         tf.summary.scalar('lr', lr)
         optimizer = tf.train.AdamOptimizer(lr)
-        if options.num_gpus == 0:
+        if len(options.gpus) == 0:
             predict = inference(options, features, is_training=True)
             loss = compute_loss(predict, labels)
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

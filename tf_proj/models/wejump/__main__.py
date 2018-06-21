@@ -4,6 +4,7 @@
 # @author spockwang@tencent.com
 #
 
-
+import tensorflow as tf
 from .app import main
-main()
+
+tf.app.run()

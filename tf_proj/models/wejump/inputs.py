@@ -63,7 +63,6 @@ def get_data_batch(batch_name):
     return batch['img'], batch['label']
 
 def _generator(name_list):
-    random.shuffle(name_list)
     for name in name_list:
         x, y = get_data_batch([name])
         yield x[0], y[0]
@@ -81,7 +80,7 @@ def get_train_inputs(options):
     dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
                                                output_types=(tf.float32, tf.float32),
                                                output_shapes=((640, 720, 3), (2,)))
-    num = options.num_gpus
+    num = len(options.gpus)
     if num <= 0:
         num = 1
     dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*num)
