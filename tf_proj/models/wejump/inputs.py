@@ -95,6 +95,7 @@ def get_train_inputs2(options):
             images = img[np.newaxis, :, :, :]
             labels = label
         else:
+            img = img[np.newaxis, :, :, :]
             images = np.concatenate((images, img), axis=0)
             labels = np.concatenate((labels, label), axis=0)
     return images, labels

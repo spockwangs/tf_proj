@@ -37,7 +37,7 @@ def main(argv=None):
         if FLAGS.test:
             evaluate(options)
         else:
-            train2(options)
+            train(options)
     except Usage:
         print_usage(argv[0])
         return 0
