@@ -45,23 +45,28 @@ def inference(options, features, is_training):
         out = conv2d(features, [3, 3, 3, 16], 2)
         # out = tf.layers.batch_normalization(out, name='bn1', training=is_training)
         out = tf.nn.relu(out, name=scope.name)
+        tf.summary.image('conv1', out)
 
     with tf.variable_scope('conv2'):
         out = make_conv_bn_relu(out, [3, 3, 16, 32], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-            
+        tf.summary.image('conv2', out)
+        
     with tf.variable_scope('conv3'):
         out = make_conv_bn_relu(out, [5, 5, 32, 64], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-
+        tf.summary.image('conv3', out)
+        
     with tf.variable_scope('conv4'):
         out = make_conv_bn_relu(out, [7, 7, 64, 128], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+        tf.summary.image('conv4', out)
 
     with tf.variable_scope('conv5'):
         out = make_conv_bn_relu(out, [9, 9, 128, 256], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-
+        tf.summary.image('conv5', out)
+        
     out = tf.reshape(out, [-1, 256 * 20 * 23])
     with tf.variable_scope('fc6'):
         out = make_fc(out, [256 * 20 * 23, 256], keep_prob)
@@ -98,7 +103,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
         lr = tf.train.exponential_decay(
             options.learning_rate, global_step, options.decay_steps, options.decay_rate, staircase=True)
         tf.summary.scalar('lr', lr)
-        optimizer = tf.train.AdamOptimizer(options.learning_rate)
+        optimizer = tf.train.AdamOptimizer(lr)
         if len(options.gpus) == 0:
             predict = inference(options, features, is_training=True)
             loss = compute_loss(predict, labels)
