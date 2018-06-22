@@ -55,19 +55,19 @@ def inference(options, features, is_training):
         tf.summary.image('conv2', out_tmp)
         
     with tf.variable_scope('conv3'):
-        out = make_conv_bn_relu(out, [5, 5, 32, 128], 1, is_training)
+        out = make_conv_bn_relu(out, [5, 5, 64, 128], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         tf.summary.image('conv3', out_tmp)
         
     with tf.variable_scope('conv4'):
-        out = make_conv_bn_relu(out, [7, 7, 64, 256], 1, is_training)
+        out = make_conv_bn_relu(out, [7, 7, 128, 256], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         tf.summary.image('conv4', out_tmp)
 
     with tf.variable_scope('conv5'):
-        out = make_conv_bn_relu(out, [9, 9, 128, 512], 1, is_training)
+        out = make_conv_bn_relu(out, [9, 9, 256, 512], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         tf.summary.image('conv5', out_tmp)
