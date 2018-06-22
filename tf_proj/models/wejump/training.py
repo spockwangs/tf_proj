@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 import tf_proj.base.utils as utils
 import tf_proj.models.wejump.model as model
-from .inputs import get_train_inputs
+from .inputs import get_train_inputs, get_train_inputs2
 
 def train2(options):
     global_step = tf.train.get_or_create_global_step()
@@ -75,7 +75,8 @@ def train(options):
         options: An object which contains the hyper-parameters.
     """
     global_step = tf.train.get_or_create_global_step()
-    features, labels = get_train_inputs(options)
+    x = tf.placeholder(tf.float32, [None, 640, 720, 3])
+    y = tf.placeholder(tf.float32, [None, 2])
     train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
@@ -90,7 +91,11 @@ def train(options):
             loop = tqdm(range(options.num_iter_per_epoch))
             losses = []
             for it in loop:
-                _, loss_value = sess.run([train_op, loss])
+                images, labels = get_train_inputs2(options)
+                _, loss_value = sess.run([train_op, loss], feed_dict={
+                    x: images,
+                    y: labels
+                    })
                 losses.append(loss_value)
             avg_loss = np.mean(losses)
             print('loss={}'.format(avg_loss))

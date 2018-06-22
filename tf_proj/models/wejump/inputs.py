@@ -78,6 +78,27 @@ def get_train_inputs(options):
     x, y = iter.get_next()
     return x, y
     
+def get_train_inputs2(options):
+    """Returns train inputs.
+    Args:
+        options: dict
+    Returns:
+        features: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
+        labels: 2-D tf.Tensor labels of shape [batch_size, 2].
+    """
+    name_list = get_name_list(options.data_dir)
+    name_list = name_list[200:]
+    name_list = np.random.choice(name_list, options.batch_size)
+    for idx, name in enumerate(name_list):
+        img, label = get_data_batch(name)
+        if idx == 0:
+            images = img[np.newaxis, :, :, :]
+            labels = label
+        else:
+            images = np.concatenate((images, img), axis=0)
+            labels = np.concatenate((labels, label), axis=0)
+    return images, labels
+
 def get_eval_inputs(options):
     '''
     Args:
