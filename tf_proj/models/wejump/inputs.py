@@ -32,40 +32,30 @@ def get_name_list(data_dir):
     name_list = list(filter(_name_checker, name_list))
     return name_list
 
-def get_data_batch(batch_name):
-    batch = {}
-    for idx, name in enumerate(batch_name):
-        posi = name.index('_res')
-        img_name = name[:posi] + '.png'
-        x, y = name[name.index('_h_') + 3: name.index('_h_') + 6], name[name.index('_w_') + 3: name.index('_w_') + 6]
-        x, y = int(x), int(y)
-        img = cv2.imread(img_name)
+def get_data_batch(name):
+    posi = name.index('_res')
+    img_name = name[:posi] + '.png'
+    x, y = name[name.index('_h_') + 3: name.index('_h_') + 6], name[name.index('_w_') + 3: name.index('_w_') + 6]
+    x, y = int(x), int(y)
+    img = cv2.imread(img_name)
 
-        # 将中间的白点去除，用附近的颜色填充。
-        mask1 = (img[:, :, 0] == 245)
-        mask2 = (img[:, :, 1] == 245)
-        mask3 = (img[:, :, 2] == 245)
-        mask = mask1 * mask2 * mask3
-        img[mask] = img[x + 10, y + 14, :]
+    # 将中间的白点去除，用附近的颜色填充。
+    mask1 = (img[:, :, 0] == 245)
+    mask2 = (img[:, :, 1] == 245)
+    mask3 = (img[:, :, 2] == 245)
+    mask = mask1 * mask2 * mask3
+    img[mask] = img[x + 10, y + 14, :]
 
-        # 截取中间的640*720的区域作为训练特征，同时调整目标点的坐标。
-        img = img[320:-320, :, :]
-        label = np.array([x-320, y], dtype=np.float32)
-
-        if idx == 0:
-            batch['img'] = img[np.newaxis, :, :, :]
-            batch['label'] = label.reshape([1, label.shape[0]])
-        else:
-            img_tmp = img[np.newaxis, :, :, :]
-            label_tmp = label.reshape((1, label.shape[0]))
-            batch['img'] = np.concatenate((batch['img'], img_tmp), axis=0)
-            batch['label'] = np.concatenate((batch['label'], label_tmp), axis=0)
-    return batch['img'], batch['label']
+    # 截取中间的640*720的区域作为训练特征，同时调整目标点的坐标。
+    img = img[320:-320, :, :]
+    label = np.array([x-320, y], dtype=np.float32)
+    label = label.reshape([1, label.shape[0]])
+    return img, label
 
 def _generator(name_list):
     for name in name_list:
-        x, y = get_data_batch([name])
-        yield x[0], y[0]
+        x, y = get_data_batch(name)
+        yield x, y
 
 def get_train_inputs(options):
     """Returns train inputs.
@@ -79,7 +69,7 @@ def get_train_inputs(options):
     name_list = name_list[200:]
     dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
                                                output_types=(tf.float32, tf.float32),
-                                               output_shapes=((640, 720, 3), (2,)))
+                                               output_shapes=(tf.TensorShape([640, 720, 3]), tf.TensorShape([1, 2])))
     num = len(options.gpus)
     if num <= 0:
         num = 1
@@ -106,3 +96,13 @@ def get_eval_inputs(options):
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
     return x, y
+
+if __name__ == '__main__':
+    flags = tf.app.flags
+    flags.DEFINE_string('config', 'tf_proj/models/wejump/config.json', '')
+    FLAGS = flags.FLAGS
+    
+    from tf_proj.base.options import get_options
+    options = get_options(FLAGS.config)
+    x, y = get_train_inputs(options)
+    print(x, y)

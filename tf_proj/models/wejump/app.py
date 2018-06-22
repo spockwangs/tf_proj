@@ -33,7 +33,7 @@ def main(argv=None):
             raise Usage("bad value for option: -c")
         
         options = get_options(FLAGS.config)
-        os.environ['VISIBLE_CUDA_DEVICES'] = ','.join([ str(x) for x in options.gpus ])
+        os.environ['CUDA_VISIBLE_DEVICES'] = ','.join([ str(x) for x in options.gpus ])
         if FLAGS.test:
             evaluate(options)
         else:

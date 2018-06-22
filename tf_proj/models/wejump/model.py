@@ -47,27 +47,27 @@ def inference(options, features, is_training):
         out = tf.nn.relu(out, name=scope.name)
 
     with tf.variable_scope('conv2'):
-        out = make_conv_bn_relu(out, [3, 3, 16, 64], 1, is_training)
+        out = make_conv_bn_relu(out, [3, 3, 16, 32], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
             
     with tf.variable_scope('conv3'):
-        out = make_conv_bn_relu(out, [5, 5, 64, 128], 1, is_training)
+        out = make_conv_bn_relu(out, [5, 5, 32, 64], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
 
     with tf.variable_scope('conv4'):
-        out = make_conv_bn_relu(out, [7, 7, 128, 256], 1, is_training)
+        out = make_conv_bn_relu(out, [7, 7, 64, 128], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
 
     with tf.variable_scope('conv5'):
-        out = make_conv_bn_relu(out, [9, 9, 256, 512], 1, is_training)
+        out = make_conv_bn_relu(out, [9, 9, 128, 256], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
 
-    out = tf.reshape(out, [-1, 512 * 20 * 23])
+    out = tf.reshape(out, [-1, 256 * 20 * 23])
     with tf.variable_scope('fc6'):
-        out = make_fc(out, [512 * 20 * 23, 512], keep_prob)
+        out = make_fc(out, [256 * 20 * 23, 256], keep_prob)
 
     with tf.variable_scope('fc7'):
-        out = make_fc(out, [512, 2], keep_prob)
+        out = make_fc(out, [256, 2], keep_prob)
     return out
 
 def compute_loss(predictions, labels):
@@ -80,8 +80,8 @@ def compute_loss(predictions, labels):
     Returns:
         Loss tensor.
     '''
-
-    return tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), 1)))
+    return tf.reduce_mean(tf.sqrt(tf.pow(predictions - labels, 2) + 1e-12))
+    #return tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), 1)))
 
 def get_train_op_and_loss(options, features, labels, global_step):
     """Get train op and loss.
@@ -98,13 +98,20 @@ def get_train_op_and_loss(options, features, labels, global_step):
         lr = tf.train.exponential_decay(
             options.learning_rate, global_step, options.decay_steps, options.decay_rate, staircase=True)
         tf.summary.scalar('lr', lr)
-        optimizer = tf.train.AdamOptimizer(lr)
         if len(options.gpus) == 0:
             predict = inference(options, features, is_training=True)
             loss = compute_loss(predict, labels)
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             with tf.control_dependencies(update_ops):
                 train_op = optimizer.minimize(loss, global_step=global_step)
+        elif len(options.gpus) == 1:
+            with tf.device('/gpu:0'):
+                predict = inference(options, features, is_training=True)
+                loss = compute_loss(predict, labels)
+                optimizer = tf.train.AdamOptimizer(options.learning_rate)
+                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+                with tf.control_dependencies(update_ops):
+                    train_op = optimizer.minimize(loss, global_step=global_step)
         else:
             tower_grads = []
             losses = []
