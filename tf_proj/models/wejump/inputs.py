@@ -112,7 +112,7 @@ def get_eval_inputs(options):
     name_list = name_list[:200]
     dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
                                                output_types=(tf.float32, tf.float32),
-                                               output_shapes=((640, 720, 3), (2,)))
+                                               output_shapes=(tf.TensorShape([640, 720, 3]), tf.TensorShape([2])))
     dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
