@@ -52,7 +52,7 @@ def inference(options, features, is_training):
         out = make_conv_bn_relu(out, [3, 3, 16, 64], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
-        tf.summary.image('conv2', out)
+        tf.summary.image('conv2', out_tmp)
         
     with tf.variable_scope('conv3'):
         out = make_conv_bn_relu(out, [5, 5, 32, 128], 1, is_training)
