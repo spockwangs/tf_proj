@@ -14,10 +14,10 @@ from .inputs import get_train_inputs, get_train_inputs2
 
 def train2(options):
     global_step = tf.train.get_or_create_global_step()
-    x = tf.placeholder(tf.float32, [None, 640, 720, 3])
-    y = tf.placeholder(tf.float32, [None, 2])
-    #features, labels = get_train_inputs(options)
-    train_op, loss = model.get_train_op_and_loss(options, x, y, global_step)
+    #x = tf.placeholder(tf.float32, [None, 640, 720, 3])
+    #y = tf.placeholder(tf.float32, [None, 2])
+    features, labels = get_train_inputs(options)
+    train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     tf.summary.scalar('loss', loss)
     
@@ -69,11 +69,8 @@ def train2(options):
             saver.restore(mon_sess, ckpt_path)    
             print('Model loaded')
         while not mon_sess.should_stop():
-            images, labels = get_train_inputs2(options)
-            mon_sess.run(train_op, feed_dict={
-                x: images,
-                y: labels
-            })
+            #images, labels = get_train_inputs2(options)
+            mon_sess.run(train_op)
         
 def train(options):
     """Train the model.

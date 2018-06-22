@@ -49,7 +49,6 @@ def get_data_batch(name):
     # 截取中间的640*720的区域作为训练特征，同时调整目标点的坐标。
     img = img[320:-320, :, :]
     label = np.array([x-320, y], dtype=np.float32)
-    label = label.reshape([1, label.shape[0]])
     return img, label
 
 def _generator(name_list):
@@ -67,9 +66,9 @@ def get_train_inputs(options):
     """
     name_list = get_name_list(options.data_dir)
     name_list = name_list[200:]
-    dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
+    dataset = tf.data.Dataset.from_generator(lambda: _generator(name_list),
                                                output_types=(tf.float32, tf.float32),
-                                               output_shapes=(tf.TensorShape([640, 720, 3]), tf.TensorShape([1, 2])))
+                                               output_shapes=(tf.TensorShape([640, 720, 3]), tf.TensorShape([2])))
     num = len(options.gpus)
     if num <= 0:
         num = 1
@@ -127,4 +126,7 @@ if __name__ == '__main__':
     from tf_proj.base.options import get_options
     options = get_options(FLAGS.config)
     x, y = get_train_inputs(options)
-    print(x, y)
+    with tf.Session() as sess:
+        x_val, y_val = sess.run([x, y])
+        print(y_val.shape)
+      
