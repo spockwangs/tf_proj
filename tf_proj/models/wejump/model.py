@@ -45,27 +45,32 @@ def inference(options, features, is_training):
         out = conv2d(features, [3, 3, 3, 16], 2)
         # out = tf.layers.batch_normalization(out, name='bn1', training=is_training)
         out = tf.nn.relu(out, name=scope.name)
-        tf.summary.image('conv1', out)
+        out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0]
+        tf.summary.image('conv1', out_tmp)
 
     with tf.variable_scope('conv2'):
         out = make_conv_bn_relu(out, [3, 3, 16, 32], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+        out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0]
         tf.summary.image('conv2', out)
         
     with tf.variable_scope('conv3'):
         out = make_conv_bn_relu(out, [5, 5, 32, 64], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-        tf.summary.image('conv3', out)
+        out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0]
+        tf.summary.image('conv3', out_tmp)
         
     with tf.variable_scope('conv4'):
         out = make_conv_bn_relu(out, [7, 7, 64, 128], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-        tf.summary.image('conv4', out)
+        out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0]
+        tf.summary.image('conv4', out_tmp)
 
     with tf.variable_scope('conv5'):
         out = make_conv_bn_relu(out, [9, 9, 128, 256], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-        tf.summary.image('conv5', out)
+        out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0]
+        tf.summary.image('conv5', out_tmp)
         
     out = tf.reshape(out, [-1, 256 * 20 * 23])
     with tf.variable_scope('fc6'):
