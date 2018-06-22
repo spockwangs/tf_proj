@@ -77,7 +77,7 @@ def train(options):
     global_step = tf.train.get_or_create_global_step()
     x = tf.placeholder(tf.float32, [None, 640, 720, 3])
     y = tf.placeholder(tf.float32, [None, 2])
-    train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
+    train_op, loss = model.get_train_op_and_loss(options, x, y, global_step)
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
