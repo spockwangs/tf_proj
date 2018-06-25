@@ -33,6 +33,7 @@ def get_name_list(data_dir):
     return name_list
 
 def get_data_batch(name):
+    name = name.decode()
     posi = name.index('_res')
     img_name = name[:posi] + '.png'
     x, y = name[name.index('_h_') + 3: name.index('_h_') + 6], name[name.index('_w_') + 3: name.index('_w_') + 6]
@@ -47,13 +48,14 @@ def get_data_batch(name):
     img[mask] = img[x + 10, y + 14, :]
 
     # 截取中间的640*720的区域作为训练特征，同时调整目标点的坐标。
-    img = img[320:-320, :, :]
+    img = img[320:-320, :, :].astype(np.float32)
     label = np.array([x-320, y], dtype=np.float32)
     return img, label
 
 def _generator(name_list):
     for name in name_list:
         x, y = get_data_batch(name)
+        print('name={}, y={}'.format(name, y))
         yield x, y
 
 def get_train_inputs(options):
@@ -66,13 +68,12 @@ def get_train_inputs(options):
     """
     name_list = get_name_list(options.data_dir)
     name_list = name_list[200:]
-    dataset = tf.data.Dataset.from_generator(lambda: _generator(name_list),
-                                               output_types=(tf.float32, tf.float32),
-                                               output_shapes=(tf.TensorShape([640, 720, 3]), tf.TensorShape([2])))
+    dataset = tf.data.Dataset.from_tensor_slices(name_list)
+    dataset = dataset.shuffle(buffer_size=len(name_list)).map(lambda filename: tuple(tf.py_func(get_data_batch, [filename], [tf.float32, tf.float32])))
     num = len(options.gpus)
     if num <= 0:
         num = 1
-    dataset = dataset.repeat().batch(options.batch_size).prefetch(options.batch_size*num)
+    dataset = dataset.repeat().batch(options.batch_size)
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
     return x, y
@@ -92,9 +93,10 @@ def get_train_inputs2(options):
         img, label = get_data_batch(name)
         if idx == 0:
             images = img[np.newaxis, :, :, :]
-            labels = label
+            labels = label[np.newaxis, :]
         else:
             img = img[np.newaxis, :, :, :]
+            label = label[np.newaxis, :]
             images = np.concatenate((images, img), axis=0)
             labels = np.concatenate((labels, label), axis=0)
     return images, labels
@@ -108,11 +110,15 @@ def get_eval_inputs(options):
         features: 4-D tf.Tensor features of shape [batch_size, 640, 720, 3].
         labels: 2-D tf.Tensor labels of shape [batch_size, 2].
     '''
+    def _generator_eval(name_list):
+        for name in name_list:
+            x, y = get_data_batch(name.e)
+            yield x, y
+
     name_list = get_name_list(options.data_dir)
     name_list = name_list[:200]
-    dataset = tf.data.Dataset().from_generator(lambda: _generator(name_list),
-                                               output_types=(tf.float32, tf.float32),
-                                               output_shapes=((640, 720, 3), (2,)))
+    dataset = tf.data.Dataset.from_tensor_slices(name_list)
+    dataset = dataset.map(lambda filename: tuple(tf.py_func(get_data_batch, [filename], [tf.float32, tf.float32])))
     dataset = dataset.batch(options.batch_size).prefetch(options.batch_size)
     iter = dataset.make_one_shot_iterator()
     x, y = iter.get_next()
@@ -128,5 +134,5 @@ if __name__ == '__main__':
     x, y = get_train_inputs(options)
     with tf.Session() as sess:
         x_val, y_val = sess.run([x, y])
-        print(y_val.shape)
+        print(x_val.shape, y_val.shape)
       
