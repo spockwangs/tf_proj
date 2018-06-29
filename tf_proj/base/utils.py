@@ -48,3 +48,31 @@ def average_gradients(tower_grads):
         grad_and_var = (grad, v)
         average_grads.append(grad_and_var)
     return average_grads
+
+def conv2d(input, ks, stride):
+    """Make a convolution layer.
+    Args:
+       input: input features
+       ks: kernel tensor of shape [filter_width, filter_height, num_input_channels, num_output_channels]
+       stride: the convolution stride
+    Returns:
+      The convolution output tensor.
+    """
+    w = variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
+    b = variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
+    out = tf.nn.conv2d(input, w, strides=[1, stride, stride, 1], padding='SAME')
+    out = tf.nn.bias_add(out, b)
+    return out
+
+def make_conv_bn_relu(input, ks, stride, is_training):
+    out = conv2d(input, ks, stride)
+    out = tf.layers.batch_normalization(out, training=is_training)
+    out = tf.nn.relu(out, name=tf.get_variable_scope().name)
+    return out
+
+def make_fc(input, ks, keep_prob):
+    w = variable_on_cpu('weights', ks, tf.truncated_normal_initializer())
+    b = variable_on_cpu('biases', [ks[-1]], tf.constant_initializer())
+    out = tf.matmul(input, w)
+    out = tf.nn.bias_add(out, b, name=tf.get_variable_scope().name)
+    return out

@@ -10,12 +10,60 @@ import numpy as np
 from tqdm import tqdm
 import tf_proj.base.utils as utils
 import tf_proj.models.wejump.model as model
+from tf_proj.models.wejump.model2 import model_fn
 from .inputs import get_train_inputs, get_train_inputs2
+
+def get_train_op_and_loss(options, features, labels, global_step):
+    """Get train op and loss.
+    Args:
+        options (dict): An object which contains the hyper-parameters.
+        features (tf.Tensor)
+        labels (tf.Tensor)
+        global_step (tf.Variable)
+    Returns:
+        train_op: Train opertation.
+        loss: loss tensor.
+    """
+    with tf.device('/cpu:0'):
+        lr = tf.placeholder(tf.float32, shape=(1,), name='lr')
+        tf.summary.scalar('lr', lr)
+        optimizer = tf.train.AdamOptimizer(options.learning_rate)
+        if len(options.gpus) == 0:
+            model = model_fn(options, features, labels, mode='train')
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                train_op = optimizer.minimize(model['loss'], global_step=global_step)
+                loss = model['loss']
+        elif len(options.gpus) == 1:
+            with tf.device('/gpu:0'):
+                model = model_fn(options, features, labels, mode='train')
+                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+                with tf.control_dependencies(update_ops):
+                    train_op = optimizer.minimize(model['loss'], global_step=global_step)
+                    loss = model['loss']
+        else:
+            tower_grads = []
+            losses = []
+            with tf.variable_scope(tf.get_variable_scope()):
+                for i in range(len(options.gpus)):
+                    with tf.device('/gpu:%d' % i):
+                        with tf.name_scope('tower_%d' % i) as scope:
+                            model = model_fn(options, features, labels, mode='train')
+                            losses.append(model['loss'])
+                            tf.get_variable_scope().reuse_variables()
+                            grads = optimizer.compute_gradients(tower_loss)
+                            tower_grads.append(grads)
+            loss = tf.reduce_mean(losses)
+            grads = utils.average_gradients(tower_grads)
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                train_op = optimizer.apply_gradients(grads, global_step=global_step)
+    return train_op, loss
 
 def train2(options):
     global_step = tf.train.get_or_create_global_step()
     features, labels = get_train_inputs(options)
-    train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
+    train_op, loss = get_train_op_and_loss(options, features, labels, global_step)
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     tf.summary.scalar('loss', loss)
     
@@ -66,9 +114,19 @@ def train2(options):
             print("Loading model: {}".format(ckpt_path))
             saver.restore(mon_sess, ckpt_path)    
             print('Model loaded')
+        lr = 0.1
+        losses_queue = []
+        prev_avg_loss = None
         while not mon_sess.should_stop():
-            #images, labels = get_train_inputs2(options)
-            mon_sess.run(train_op)
+            print('lr={}'.format(lr))
+            loss, _ = mon_sess.run([loss, train_op], feed_dict={ 'lr': lr })
+            losses_queue.append(loss)
+            if len(losses_queue) >= 10:
+                avg_loss = np.mean(losses_queue)
+                if prev_avg_loss is not None and avg_loss >= prev_avg_loss:
+                    lr = lr*0.1
+                prev_avg_loss = avg_loss
+            
         
 def train(options):
     """Train the model.
