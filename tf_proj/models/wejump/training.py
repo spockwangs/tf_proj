@@ -50,7 +50,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
                             model = model_fn(options, features, labels, mode='train')
                             losses.append(model['loss'])
                             tf.get_variable_scope().reuse_variables()
-                            grads = optimizer.compute_gradients(tower_loss)
+                            grads = optimizer.compute_gradients(model['loss'])
                             tower_grads.append(grads)
             loss = tf.reduce_mean(losses)
             grads = utils.average_gradients(tower_grads)
