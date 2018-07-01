@@ -133,7 +133,7 @@ def train(options):
     """
     global_step = tf.train.get_or_create_global_step()
     features, labels = get_train_inputs(options)
-    train_op, loss = model.get_train_op_and_loss(options, features, labels, global_step)
+    train_op, loss, lr_op = get_train_op_and_loss(options, features, labels, global_step)
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
@@ -143,15 +143,23 @@ def train(options):
             print("Loading model checkpoint {} ...".format(latest_checkpoint))
             saver.restore(sess, latest_checkpoint)
             print("Model loaded")
-        for epoch in range(options.num_epochs):
-            loop = tqdm(range(options.num_iter_per_epoch))
-            losses = []
-            for it in loop:
-                _, loss_value = sess.run([train_op, loss])
-                losses.append(loss_value)
-            avg_loss = np.mean(losses)
-            print('loss={}'.format(avg_loss))
-            print('Saving model ...')
-            saver.save(sess, options.checkpoint_dir, global_step=global_step)
+        lr = 0.1
+        losses_queue = []
+        prev_avg_loss = None
+        while True:
+            _, loss_value = sess.run([train_op, loss], feed_dict={ lr_op: lr })
+            if loss_value <= 1:
+                break
+            losses_queue.append(loss_value)
+            if len(losses_queue) >= 10:
+                avg_loss = np.mean(losses_queue)
+                print('lr={}, loss={}'.format(lr, avg_loss))
+                if prev_avg_loss is not None and avg_loss >= prev_avg_loss:
+                    lr = lr*0.1
+                prev_avg_loss = avg_loss
+                losses_queue = []
+                print('Saving model ...')
+                saver.save(sess, options.checkpoint_dir, global_step=global_step)
+            
 
 
