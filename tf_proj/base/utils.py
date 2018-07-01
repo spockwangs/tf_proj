@@ -76,3 +76,4 @@ def make_fc(input, ks, keep_prob):
     out = tf.matmul(input, w)
     out = tf.nn.bias_add(out, b, name=tf.get_variable_scope().name)
     return out
+

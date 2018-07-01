@@ -9,7 +9,6 @@ import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 import tf_proj.base.utils as utils
-import tf_proj.models.wejump.model as model
 from tf_proj.models.wejump.model2 import model_fn
 from .inputs import get_train_inputs, get_train_inputs2
 
@@ -25,9 +24,9 @@ def get_train_op_and_loss(options, features, labels, global_step):
         loss: loss tensor.
     """
     with tf.device('/cpu:0'):
-        lr = tf.placeholder(tf.float32, shape=(1,), name='lr')
+        lr = tf.placeholder(tf.float32, shape=[], name='lr')
         tf.summary.scalar('lr', lr)
-        optimizer = tf.train.AdamOptimizer(options.learning_rate)
+        optimizer = tf.train.AdamOptimizer(lr)
         if len(options.gpus) == 0:
             model = model_fn(options, features, labels, mode='train')
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -58,12 +57,12 @@ def get_train_op_and_loss(options, features, labels, global_step):
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             with tf.control_dependencies(update_ops):
                 train_op = optimizer.apply_gradients(grads, global_step=global_step)
-    return train_op, loss
+    return train_op, loss, lr
 
 def train2(options):
     global_step = tf.train.get_or_create_global_step()
     features, labels = get_train_inputs(options)
-    train_op, loss = get_train_op_and_loss(options, features, labels, global_step)
+    train_op, loss, lr_op = get_train_op_and_loss(options, features, labels, global_step)
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     tf.summary.scalar('loss', loss)
     
@@ -93,8 +92,6 @@ def train2(options):
                 if loss_value < self._stop_loss:
                     run_context.request_stop()
 
-    init_op = tf.global_variables_initializer()
-    tf.logging.set_verbosity(tf.logging.INFO)
     with tf.train.MonitoredTrainingSession(
             hooks=[
                 _StopAtLoss(1.0),
@@ -119,13 +116,14 @@ def train2(options):
         prev_avg_loss = None
         while not mon_sess.should_stop():
             print('lr={}'.format(lr))
-            loss, _ = mon_sess.run([loss, train_op], feed_dict={ 'lr': lr })
-            losses_queue.append(loss)
+            loss_val, _ = mon_sess.run([loss, train_op], feed_dict={ lr_op : lr })
+            losses_queue.append(loss_val)
             if len(losses_queue) >= 10:
                 avg_loss = np.mean(losses_queue)
                 if prev_avg_loss is not None and avg_loss >= prev_avg_loss:
                     lr = lr*0.1
                 prev_avg_loss = avg_loss
+                losses_queue = []
             
         
 def train(options):
