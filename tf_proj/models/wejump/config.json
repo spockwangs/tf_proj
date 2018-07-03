@@ -1,14 +1,14 @@
 {
-    "learning_rate": 0.000001,
+    "learning_rate": 0.1,
     "decay_steps": 100,
     "decay_rate": 0.1,
     "keep_prob": 0.75,
-    "batch_size": 8,
+    "batch_size": 2,
     "num_epochs": 100,
     "num_iter_per_epoch": 100,
     "checkpoint_dir": "tf_proj/models/wejump/checkpoint/",
     "summary_dir": "tf_proj/models/wejump/summary/",
     "max_to_keep": 2,
     "data_dir": "tf_proj/models/wejump/data/",
-    "gpus": [ 1,2,3 ]
+    "gpus": [ ]
 }

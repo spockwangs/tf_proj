@@ -54,7 +54,7 @@ def inference(options, features, is_training):
         
     out = tf.reshape(out, [-1, 512 * 20 * 23])
     with tf.variable_scope('fc6'):
-        out = make_fc(out, [512 * 20 * 23, 512], keep_prob)
+        out = utils.make_fc(out, [512 * 20 * 23, 512], keep_prob)
 
     with tf.variable_scope('fc7'):
         out = utils.make_fc(out, [512, 2], keep_prob)

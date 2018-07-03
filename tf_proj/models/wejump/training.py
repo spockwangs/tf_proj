@@ -24,9 +24,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
         loss: loss tensor.
     """
     with tf.device('/cpu:0'):
-        lr = tf.placeholder(tf.float32, shape=[], name='lr')
-        tf.summary.scalar('lr', lr)
-        optimizer = tf.train.AdamOptimizer(lr)
+        optimizer = tf.train.MomentumOptimizer(options.learning_rate, 0.5)
         if len(options.gpus) == 0:
             model = model_fn(options, features, labels, mode='train')
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -57,7 +55,7 @@ def get_train_op_and_loss(options, features, labels, global_step):
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             with tf.control_dependencies(update_ops):
                 train_op = optimizer.apply_gradients(grads, global_step=global_step)
-    return train_op, loss, lr
+    return train_op, loss
 
 def train2(options):
     global_step = tf.train.get_or_create_global_step()
@@ -133,7 +131,8 @@ def train(options):
     """
     global_step = tf.train.get_or_create_global_step()
     features, labels = get_train_inputs(options)
-    train_op, loss, lr_op = get_train_op_and_loss(options, features, labels, global_step)
+    train_op, loss = get_train_op_and_loss(options, features, labels, global_step)
+    check_op = tf.add_check_numerics_ops()
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver(max_to_keep=options.max_to_keep)
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
@@ -143,21 +142,16 @@ def train(options):
             print("Loading model checkpoint {} ...".format(latest_checkpoint))
             saver.restore(sess, latest_checkpoint)
             print("Model loaded")
-        lr = 0.1
-        losses_queue = []
-        prev_avg_loss = None
+        losses = []
         while True:
-            _, loss_value = sess.run([train_op, loss], feed_dict={ lr_op: lr })
+            _, loss_value, _ = sess.run([train_op, loss, check_op])
             if loss_value <= 1:
                 break
-            losses_queue.append(loss_value)
-            if len(losses_queue) >= 10:
-                avg_loss = np.mean(losses_queue)
-                print('lr={}, loss={}'.format(lr, avg_loss))
-                if prev_avg_loss is not None and avg_loss >= prev_avg_loss:
-                    lr = lr*0.1
-                prev_avg_loss = avg_loss
-                losses_queue = []
+            losses.append(loss_value)
+            if len(losses) >= 10:
+                avg_loss = np.mean(losses)
+                print('loss={}'.format(avg_loss))
+                losses = []
                 print('Saving model ...')
                 saver.save(sess, options.checkpoint_dir, global_step=global_step)
             
