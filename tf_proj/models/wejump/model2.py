@@ -52,10 +52,10 @@ def _inference(options, features, is_training):
         
     out = tf.reshape(out, [-1, 160*180*32])
     with tf.variable_scope('fc6'):
-        out = utils.make_fc(out, [160*180*32, 512], keep_prob)
+        out = utils.make_fc(out, [160*180*32, 512])
 
     with tf.variable_scope('fc7'):
-        out = utils.make_fc(out, [512, 2], keep_prob)
+        out = utils.make_fc(out, [512, 2])
     return out
 
 def _compute_loss(predictions, labels):
