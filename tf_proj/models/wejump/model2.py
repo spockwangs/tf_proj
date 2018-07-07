@@ -28,6 +28,7 @@ def _inference(options, features, is_training):
         #out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         #tf.summary.image('conv1', out_tmp)
 
+    """
     with tf.variable_scope('conv2') as scope:
         out = utils.make_conv_bn_relu(out, [9, 9, 16, 32], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
@@ -41,16 +42,17 @@ def _inference(options, features, is_training):
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         #out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         #tf.summary.image('conv4', out_tmp)
-
+    """
+    
     with tf.variable_scope('conv5'):
-        out = utils.make_conv_bn_relu(out, [3, 3, 128, 512], 1, is_training)
+        out = utils.make_conv_bn_relu(out, [3, 3, 16, 32], 1, is_training)
         out = tf.nn.max_pool(out, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         #out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         #tf.summary.image('conv5', out_tmp)
         
-    out = tf.reshape(out, [-1, 512 * 20 * 23])
+    out = tf.reshape(out, [-1, out.shape[1]*out.shape[2]*out.shape[3]])
     with tf.variable_scope('fc6'):
-        out = utils.make_fc(out, [512 * 20 * 23, 512], keep_prob)
+        out = utils.make_fc(out, [out.shape[1]*out.shape[2]*out.shape[3], 512], keep_prob)
 
     with tf.variable_scope('fc7'):
         out = utils.make_fc(out, [512, 2], keep_prob)
