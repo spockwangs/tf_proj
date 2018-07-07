@@ -50,9 +50,9 @@ def _inference(options, features, is_training):
         #out_tmp = tf.transpose(out, perm=[3, 1, 2, 0])[:, :, :, 0:1]
         #tf.summary.image('conv5', out_tmp)
         
-    out = tf.reshape(out, [-1, out.shape[1]*out.shape[2]*out.shape[3]])
+    out = tf.reshape(out, [-1, 160*180*32])
     with tf.variable_scope('fc6'):
-        out = utils.make_fc(out, [out.shape[1]*out.shape[2]*out.shape[3], 512], keep_prob)
+        out = utils.make_fc(out, [160*180*32, 512], keep_prob)
 
     with tf.variable_scope('fc7'):
         out = utils.make_fc(out, [512, 2], keep_prob)
