@@ -4,24 +4,7 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-
-def generator_forward(z):
-    with tf.variable_scope("generator"):
-        h1 = tf.layers.dense(z, 128)
-        h1 = tf.maximum(0.01*h1, h1)
-        h1 = tf.layers.dropout(h1, rate=0.2)
-    
-        logits = tf.layers.dense(h1, 784)
-        output = tf.sigmoid(logits)
-        return output, logits
-    
-def discriminator_forward(x, reuse=False):
-    with tf.variable_scope("discriminator", reuse=reuse):
-        h1 = tf.layers.dense(x, 128)
-        h1 = tf.maximum(0.01*h1, h1)
-        logits = tf.layers.dense(h1, 1)
-        output = tf.sigmoid(logits)
-        return output, logits
+from network_gan import generator_forward, discriminator_forward
     
 z_dim = 100
 z = tf.placeholder(tf.float32, shape=[None, z_dim])
@@ -63,7 +46,7 @@ with tf.Session() as sess:
         print("epoch={}, disc_loss={}(real_loss={}, fake_loss={}), gen_loss={}".format(
             e, disc_loss, d_real_loss_val, d_fake_loss_val, gen_loss))
 
-        if e > 0 and e % 100 == 0:
+        if e > 0 and e % 5 == 0:
             n = 10
             digit_size = 28
             figure = np.zeros((digit_size * n, digit_size * n))
